@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Snally Hoard</title>
+<meta name="description" content="Snallygaster 2026 drinking leaderboard. Every pour grows your dragon.">
+<meta name="theme-color" content="#5a3220">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%89%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800;900&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="demoBanner" class="demo-banner" hidden>
+  <strong>DEMO DATA</strong> · fake drinkers stored in this browser only. Set <code>API_URL</code> in config.js to go live.
+</div>
+
+<header class="mast">
+  <div class="mast-inner">
+    <div class="mast-text">
+      <p class="mast-kicker">Snallygaster 2026 · Washington, DC</p>
+      <h1>Snally <span>Hoard</span></h1>
+      <p class="mast-sub">Snallygaster 2026 · Every pour grows your dragon</p>
+    </div>
+    <div class="mast-art" id="mastArt" aria-hidden="true"></div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Main">
+  <a class="tab" id="tab-log" href="#log">🍺 Log a Pour</a>
+  <a class="tab" id="tab-board" href="#board">🏆 Leaderboard</a>
+</nav>
+
+<div class="statusbar" id="statusbar">
+  <span id="status" class="status" role="status">Loading…</span>
+  <button type="button" class="btn btn-mini" id="refreshBtn" aria-label="Refresh now">⟳ Refresh</button>
+</div>
+
+<main id="main" class="wrap">
+
+<!-- ===================== LOG A POUR ===================== -->
+<section id="view-log" class="view" aria-labelledby="tab-log" hidden>
+  <form id="pourForm" class="pour-form" novalidate autocomplete="off">
+
+    <section class="card step" aria-labelledby="h-who">
+      <h2 class="step-h" id="h-who"><span class="num" aria-hidden="true">1</span> Who are you?</h2>
+      <div id="whoPick" class="field">
+        <label for="drinkerSel" class="lbl">Pick your name</label>
+        <select id="drinkerSel" class="input" aria-describedby="whoHelp"></select>
+        <p class="help" id="whoHelp">Not on the list? Ask the organizer to add you.</p>
+      </div>
+      <div id="whoChosen" class="who-chosen" hidden>
+        <span>Drinking as <strong id="whoName"></strong></span>
+        <button type="button" class="linkbtn" id="whoChange">(change)</button>
+      </div>
+      <div id="mySnally" class="my-snally" hidden></div>
+    </section>
+
+    <section class="card step" aria-labelledby="h-beer">
+      <h2 class="step-h" id="h-beer"><span class="num" aria-hidden="true">2</span> Beer</h2>
+      <div id="beerSearch" class="combo field">
+        <label for="beerInput" class="lbl">Search brewery, beer or style</label>
+        <div class="combo-box">
+          <span class="combo-icon" aria-hidden="true">🔎</span>
+          <input id="beerInput" class="input" type="text" role="combobox" aria-autocomplete="list"
+                 aria-expanded="false" aria-controls="beerList" aria-describedby="beerHelp"
+                 placeholder="e.g. burial cruc, 3 floyds zombie" enterkeyhint="search"
+                 autocapitalize="off" autocorrect="off" spellcheck="false">
+        </div>
+        <ul id="beerList" class="results" role="listbox" aria-label="Matching beers" hidden></ul>
+        <p class="help" id="beerHelp">Pick from the list, or add a custom drink at the bottom of the results.</p>
+      </div>
+      <div id="beerChosen" class="chosen" hidden></div>
+      <div id="customFields" class="custom-fields" hidden>
+        <div class="field">
+          <label for="cBrewery" class="lbl">Brewery <span class="opt">(optional)</span></label>
+          <input id="cBrewery" class="input" type="text" maxlength="80">
+        </div>
+        <div class="field">
+          <label for="cName" class="lbl">Drink name <span class="req">*</span></label>
+          <input id="cName" class="input" type="text" maxlength="100" required>
+        </div>
+        <div class="field">
+          <label for="cAbv" class="lbl">ABV % <span class="req">*</span></label>
+          <input id="cAbv" class="input input-num" type="number" inputmode="decimal" min="0" max="70" step="0.1" required aria-describedby="cAbvHelp">
+          <p class="help" id="cAbvHelp">0–70. Water is 0 (and doesn't count).</p>
+        </div>
+      </div>
+      <div id="tbdAbvWrap" class="field" hidden>
+        <label for="tbdAbv" class="lbl">ABV % <span class="req">*</span> <span class="opt">(not on the list yet: check the tap sign)</span></label>
+        <input id="tbdAbv" class="input input-num" type="number" inputmode="decimal" min="0" max="70" step="0.1">
+      </div>
+    </section>
+
+    <section class="card step" aria-labelledby="h-size">
+      <h2 class="step-h" id="h-size"><span class="num" aria-hidden="true">3</span> Pour size</h2>
+      <div class="sizes" role="radiogroup" aria-labelledby="h-size" id="sizes">
+        <label class="size"><input type="radio" name="size" value="small"><span class="size-in"><span class="glass" data-oz="2"></span><b>Small</b><small>2 oz</small></span></label>
+        <label class="size"><input type="radio" name="size" value="standard" checked><span class="size-in"><span class="glass" data-oz="4"></span><b>Standard</b><small>4 oz</small></span></label>
+        <label class="size"><input type="radio" name="size" value="brim"><span class="size-in"><span class="glass" data-oz="5.5"></span><b>To the Brim</b><small>5.5 oz</small></span></label>
+        <label class="size size-custom"><input type="radio" name="size" value="custom"><span class="size-in"><span class="glass" id="customGlass" data-oz="0"></span><b>Custom</b></span></label>
+      </div>
+      <div id="customOzWrap" class="field field-inline" hidden>
+        <label for="customOz" class="lbl">Ounces</label>
+        <input id="customOz" class="input input-num" type="number" inputmode="decimal" min="0.25" max="5.5" step="0.25" aria-describedby="customOzHelp">
+        <span class="help" id="customOzHelp">More than 0, up to 5.5 oz (a full Snally glass).</span>
+      </div>
+    </section>
+
+    <section class="card step" aria-labelledby="h-rate">
+      <h2 class="step-h" id="h-rate"><span class="num" aria-hidden="true">4</span> <label for="rating">Rating</label></h2>
+      <div class="rating">
+        <div class="rating-show" aria-hidden="true"><span id="ratingVal">3.0</span> <span class="star">★</span> <span id="ratingLabel" class="rating-label">solid</span></div>
+        <input id="rating" type="range" min="1" max="5" step="0.1" value="3" aria-valuetext="3.0 stars, solid">
+        <div class="rating-ends" aria-hidden="true"><span>1 · drain pour</span><span>5 · whale!</span></div>
+      </div>
+    </section>
+
+    <div class="submit-wrap">
+      <ul id="formHints" class="hints" aria-live="polite"></ul>
+      <p id="formError" class="form-error" role="alert" hidden></p>
+      <button type="submit" id="submitBtn" class="btn btn-big btn-gold">Add to my hoard 🪙</button>
+    </div>
+  </form>
+
+  <section class="card" aria-labelledby="h-recent" id="recentCard">
+    <h2 class="sec-h" id="h-recent">My recent pours</h2>
+    <ul id="recentList" class="pour-list"></ul>
+  </section>
+</section>
+
+<!-- ===================== LEADERBOARD ===================== -->
+<section id="view-board" class="view" aria-labelledby="tab-board" hidden>
+  <section aria-labelledby="h-podium" class="sec">
+    <h2 class="sec-h" id="h-podium">Hoard Podium</h2>
+    <p class="sub">Top three dragons by total AU. Bigger coin pile, bigger hoard.</p>
+    <div class="podium" id="podium"></div>
+  </section>
+
+  <section aria-labelledby="h-awards" class="sec">
+    <h2 class="sec-h" id="h-awards">The Awards</h2>
+    <p class="sub">Named for the cryptids of the DMV. Average-ABV awards need 7 counted pours.</p>
+    <div class="awards" id="awards"></div>
+  </section>
+
+  <section aria-labelledby="h-rank" class="sec">
+    <h2 class="sec-h" id="h-rank">The Hoard Rankings</h2>
+    <p class="sub">Everyone, by total AU. Tap a name to see their pours.</p>
+    <div class="card table-card">
+      <table class="rank" id="rankTable">
+        <thead><tr>
+          <th scope="col" class="c-pos">#</th>
+          <th scope="col" class="c-who" colspan="2">Dragon</th>
+          <th scope="col" class="c-num">AU</th>
+          <th scope="col" class="c-num">Pours</th>
+          <th scope="col" class="c-num c-wide">oz</th>
+          <th scope="col" class="c-num c-wide">Avg ABV</th>
+          <th scope="col" class="c-num c-wide">Avg ★</th>
+          <th scope="col" class="c-num c-wide">Tents</th>
+        </tr></thead>
+        <tbody id="rankBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-tents" class="sec">
+    <h2 class="sec-h" id="h-tents">The Field Guide</h2>
+    <p class="sub">Every tent has a monster, and every monster has a champion: the drinker with the most AU from that tent's taps. Custom drinks don't count here.</p>
+    <div class="tents" id="tents"></div>
+  </section>
+
+  <section aria-labelledby="h-sight" class="sec">
+    <h2 class="sec-h" id="h-sight">Sightings Log</h2>
+    <p class="sub">The beers everyone keeps spotting.</p>
+    <div class="sightings">
+      <div class="card"><h3 class="card-h">🔭 Most poured</h3><ol class="sight-list" id="mostPoured"></ol></div>
+      <div class="card"><h3 class="card-h">⭐ Top rated <small>(min 3 ratings)</small></h3><ol class="sight-list" id="topRated"></ol></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-all" class="sec">
+    <details class="card all-pours" id="allPoursBox">
+      <summary><h2 class="sec-h" id="h-all">All pours <span id="allCount" class="count"></span></h2></summary>
+      <ul class="pour-list" id="allPours"></ul>
+    </details>
+  </section>
+
+  <section aria-labelledby="h-how" class="sec">
+    <h2 class="sec-h" id="h-how">How scoring works</h2>
+    <div class="card how">
+      <p>Every pour adds <b>alcohol units (AU)</b> to your hoard: ounces times ABV. A standard 4 oz pour of a 6.5% beer is 26 AU.</p>
+      <div class="formula"><span>Pour AU</span><code>AU = oz × ABV%</code></div>
+      <div class="formula"><span>Total AU</span><code>Total AU = Σ (oz × ABV%) over every counted pour</code></div>
+      <div class="formula"><span>Average ABV</span><code>Avg ABV = Total AU ÷ Total oz (volume-weighted)</code></div>
+      <div class="formula"><span>Snally stage</span><code>0–2 pours Egg · 3–5 Hatchling · 6–8 Whelp · 9–11 Drake · 12+ Mega Elder</code></div>
+      <ul class="how-list">
+        <li><b>Sizes:</b> Small 2 oz · Standard 4 oz · To the Brim 5.5 oz, or type your own (max 5.5).</li>
+        <li><b>Water (0% ABV) doesn't count</b> anywhere. Stay hydrated anyway. NA beers (e.g. 0.5%) do count.</li>
+        <li><b>Goatman and Bunnyman</b> (highest / lowest average ABV) need at least 7 counted pours.</li>
+        <li><b>Tent champions</b> have the most AU from that tent's beers; ties share the crown. Custom drinks have no tent.</li>
+        <li>An ABV marked <b>~</b> is the festival's estimate.</li>
+        <li>Logged the wrong thing? Undo it from <i>My recent pours</i> within 10 minutes.</li>
+      </ul>
+    </div>
+  </section>
+</section>
+
+<!-- ===================== ADMIN ===================== -->
+<section id="view-admin" class="view" aria-labelledby="h-admin" hidden>
+  <h2 class="sec-h" id="h-admin">Organizer</h2>
+  <form id="pinForm" class="card admin-card" novalidate>
+    <div class="field">
+      <label for="pinInput" class="lbl">Organizer PIN</label>
+      <input id="pinInput" class="input" type="password" inputmode="numeric" autocomplete="off" required>
+      <p class="help" id="pinDemoHint" hidden>Demo mode PIN: <b>1234</b></p>
+    </div>
+    <p id="pinError" class="form-error" role="alert" hidden></p>
+    <button type="submit" class="btn btn-gold">Unlock</button>
+  </form>
+  <div id="adminPanel" hidden>
+    <form id="addDrinkerForm" class="card admin-card" novalidate>
+      <h3 class="card-h">Add a drinker</h3>
+      <div class="field">
+        <label for="newDrinker" class="lbl">Name</label>
+        <input id="newDrinker" class="input" type="text" maxlength="40" required>
+      </div>
+      <p id="addDrinkerMsg" class="form-error" role="alert" hidden></p>
+      <button type="submit" class="btn btn-gold">Add drinker</button>
+      <p class="help">Drinkers: <span id="drinkerNames"></span></p>
+    </form>
+    <div class="card admin-card">
+      <h3 class="card-h">All pours <span id="adminCount" class="count"></span></h3>
+      <p class="help">Resets and backups happen in the Google Sheet's menu (Extensions → Snally menu), not here.</p>
+      <div class="admin-actions">
+        <button type="button" class="btn btn-mini" id="lockBtn">🔒 Lock</button>
+        <button type="button" class="btn btn-mini btn-danger" id="resetDemoBtn" hidden>Reset demo data</button>
+      </div>
+      <ul class="pour-list" id="adminPours"></ul>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <p>Drink water. Eat a pretzel. Get home safe. 🐉</p>
+  <p><a href="#log">Log</a> · <a href="#board">Leaderboard</a> · <a href="#admin">Organizer</a></p>
+</footer>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<dialog id="evolveDlg" class="evolve" aria-labelledby="evolveTitle">
+  <div class="evolve-burst" aria-hidden="true"></div>
+  <h2 id="evolveTitle">EVOLUTION!</h2>
+  <div class="evolve-art"><div id="evolveFrom"></div><span class="evolve-arrow" aria-hidden="true">➜</span><div id="evolveTo"></div></div>
+  <p id="evolveText"></p>
+  <form method="dialog"><button class="btn btn-big btn-gold" id="evolveClose">Rawr! 🐉</button></form>
+</dialog>
+
+<script src="config.js"></script>
+<script src="mascot.js"></script>
+<script src="lore.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
