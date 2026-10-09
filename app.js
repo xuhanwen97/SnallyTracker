@@ -380,16 +380,14 @@
     });
   }
   function stampBook(r) {
-    const total = AWARDS.length + TENT_ORDER.filter((t) => !LORE.tents[t].hiddenUnlessPoured).length;
     const stamp = (key, label, emoji, kind, i) =>
-      `<li class="stamp stamp-${kind}" style="--tilt:${[-6, 4, -3, 7, -5, 2][i % 6]}deg" title="${esc(label)}">
-        <div class="stamp-art">${cryptidArt(key, "st-" + kind + "-" + i, emoji)}</div><div class="stamp-name">${esc(label)}</div></li>`;
-    const aw = awardsHeldBy(r.name).map((a, i) => { const L = LORE.awards[a.key] || {}; return stamp(a.key, (L.name || a.key).replace(/^The /, ""), L.emoji, "award", i); });
-    const tn = r.tentsWon.map((t, i) => stamp(t, t, (LORE.tents[t] || {}).emoji, "tent", i + aw.length));
-    const n = aw.length + tn.length;
-    return `<div class="my-stamps"><div class="stamps-h">Stamp book <span class="muted">${n} / ${total}</span></div>
-      ${n ? `<ul class="stamps">${aw.join("")}${tn.join("")}</ul>`
-        : `<p class="stamps-none muted">No stamps yet. Lead an award or top a tent's Field Guide page to earn one.</p>`}</div>`;
+      `<li class="stamp stamp-${kind}" style="--tilt:${[-6, 4, -3, 7, -5, 2][i % 6]}deg" title="${esc(label)}" aria-label="${esc(label)}">${cryptidArt(key, "st-" + kind + "-" + i, emoji)}</li>`;
+    const aw = awardsHeldBy(r.name).map((a, i) => { const L = LORE.awards[a.key] || {}; return stamp(a.key, L.name || a.key, L.emoji, "award", i); });
+    const tn = r.tentsWon.map((t, i) => stamp(t, t, (LORE.tents[t] || {}).emoji, "tent", i));
+    if (!aw.length && !tn.length) return `<div class="my-stamps"><p class="stamps-none muted">No stamps yet: lead an award or top a tent to earn one.</p></div>`;
+    const row = (lbl, items) => items.length ? `<div class="stamp-row"><span class="stamp-lbl">${lbl}</span><ul class="stamps">${items.join("")}</ul></div>` : "";
+    return `<div class="my-stamps">${row("Awards", aw)}${row("Field Guide", tn)}</div>
+`;
   }
 
   function renderRecent() {
