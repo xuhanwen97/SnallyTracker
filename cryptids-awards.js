@@ -33,8 +33,8 @@
   C.snallygaster = (id) => {
     let g = "";
     // feathered wings
-    g += mirror(`<path d="M74,124 C60,98 34,90 18,100 C26,106 24,110 20,116 C30,118 30,124 26,130 C38,130 40,136 38,142 C52,140 64,138 76,144 Z" fill="#a8e0c4" ${O}/>` +
-      `<path d="M70,124 C58,110 42,106 30,108 M70,132 C58,124 46,122 36,124" fill="none" stroke="#6fbf98" stroke-width="2.2" stroke-linecap="round"/>`);
+    g += mirror(`<path d="M76,122 C64,104 42,94 24,98 Q12,106 24,113 Q12,121 26,128 Q18,138 34,140 Q32,150 50,147 Q64,146 78,144 Z" fill="#a8e0c4" ${O}/>` +
+      `<path d="M70,124 C56,114 40,112 30,113 M70,132 C58,128 44,128 34,129 M72,140 C62,138 54,140 46,142" fill="none" stroke="#6fbf98" stroke-width="2.2" stroke-linecap="round"/>`);
     // body, belly, feet
     g += `<ellipse cx="100" cy="154" rx="36" ry="30" fill="#f39a5b" ${O}/><ellipse cx="100" cy="160" rx="22" ry="19" fill="#ffe6bf"/>`;
     g += mirror(`<ellipse cx="83" cy="184" rx="13" ry="6.5" fill="#ffc86b" ${O}/>`);
@@ -63,8 +63,7 @@
     // humps + tail
     g += `<path d="M120,168 C120,124 160,124 160,168 Z" fill="${B}" ${O}/>` +
       `<path d="M166,168 C166,140 182,138 186,122 L196,118 L190,134 C188,146 188,156 190,168 Z" fill="${B}" ${O}/>` +
-      `<path d="M132,134 l5,-10 l5,8 M146,132 l5,-9 l4,9" fill="${D}" ${O} stroke-width="2"/>` +
-      `<circle cx="140" cy="148" r="4" fill="${D}"/><circle cx="150" cy="156" r="3" fill="${D}"/>`;
+      `<circle cx="132" cy="146" r="4" fill="${D}"/><circle cx="146" cy="140" r="5" fill="${D}"/><circle cx="148" cy="156" r="3.5" fill="${D}"/><circle cx="176" cy="152" r="3" fill="${D}"/>`;
     // neck
     g += `<path d="M56,172 C52,142 62,124 70,112 L110,114 C100,132 96,152 100,172 Z" fill="${B}" ${O}/>` +
       `<path d="M74,170 C72,148 78,132 86,120 L100,122 C92,136 88,152 90,170 Z" fill="#e6fff4"/>`;
@@ -104,11 +103,11 @@
       `<path d="M132,134 Q134,124 142,128 Q148,120 156,128 Q164,124 166,134 Z" fill="#fff" ${O}/>` +
       `<ellipse cx="134" cy="154" rx="9" ry="8" fill="${F}" ${O}/>`;
     // fluffy head: outlined puffs, then fill pass to hide inner lines
-    g += `<ellipse cx="100" cy="92" rx="46" ry="40" fill="${F}" ${O}/>` + fluff.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${F}" ${O}/>`).join("") +
-      `<ellipse cx="100" cy="92" rx="44" ry="38" fill="${F}"/>` + fluff.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r - 2}" fill="${F}"/>`).join("");
+    const puffs = (d) => `<ellipse cx="100" cy="92" rx="${46 - d}" ry="${40 - d}"/>` + fluff.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r - d}"/>`).join("");
+    g += `<g fill="${F}" ${O}>${puffs(0)}</g><g fill="${F}">${puffs(2)}</g>`;
     g += face(100, 90, 1);
     // beard tuft
-    g += `<path d="M90,126 Q92,140 98,150 Q100,144 102,150 Q108,140 110,126 Q100,132 90,126 Z" fill="${F}" ${O}/>`;
+    g += `<path d="M86,124 Q86,140 94,152 Q98,146 100,154 Q102,146 106,152 Q114,140 114,124 Q100,132 86,124 Z" fill="${F}" ${O}/>`;
     return svg("Goatman", g);
   };
 

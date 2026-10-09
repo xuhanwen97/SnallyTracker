@@ -389,6 +389,12 @@
       <div class="pour-meta">${tent} <span>${math}</span>${isFinite(p.rating) ? ` <span class="pour-star">${trim0(p.rating, 1)}★</span>` : ""} <span class="muted"${isFinite(p.tms) ? ` title="${esc(new Date(p.tms).toLocaleString())}"` : ""}>${isFinite(p.tms) ? clock(p.tms) + " · " : ""}${ago(p.tms)}</span></div></div>
       ${btn}</li>`;
   }
+  // Cute cryptid/tent avatar (cryptids-*.js), falling back to the emoji when there's no drawing.
+  const cryptidArt = (key, id, emoji) => {
+    const f = window.CRYPTIDS && window.CRYPTIDS[key];
+    try { if (f) return f(id); } catch (e) { /* fall through to emoji */ }
+    return `<span class="ico-emoji">${emoji || "⛺"}</span>`;
+  };
   const tentChip = (t) => `<span class="chip chip-tent">${esc((LORE.tents[t] || {}).emoji || "⛺")} ${esc(t)}</span>`;
 
   // beer combobox
@@ -694,7 +700,7 @@
       const waiting = a.min ? list.filter((r) => r.n > 0 && r.n < a.min).sort((x, y) => y.n - x.n) : [];
       const wait = waiting.length ? `<p class="waiting">Still hatching: ${waiting.slice(0, 6).map((r) => `${esc(r.name)} <span class="muted">needs ${plural(a.min - r.n, "more pour")}</span>`).join(" · ")}${waiting.length > 6 ? ` · +${waiting.length - 6} more` : ""}</p>` : "";
       return `<article class="card award award-${a.key}">
-        <header class="award-h"><span class="award-emoji" aria-hidden="true">${L.emoji}</span><div><h3>${esc(L.name)}</h3><div class="rule">${esc(a.rule)}</div></div></header>
+        <header class="award-h"><span class="award-emoji" aria-hidden="true">${cryptidArt(a.key, "cr-" + a.key, L.emoji)}</span><div><h3>${esc(L.name)}</h3><div class="rule">${esc(a.rule)}</div></div></header>
         <p class="story">${esc(L.story)}</p>
         <div class="leader">${lead ? `<div class="leader-art">${art(lead.stage, { hoard: lead.hoard, id: "aw-" + a.key, who: lead.name })}</div>
           <div><div class="leader-name">${esc(lead.name)}</div><div class="leader-val">${a.val(lead)}</div></div>`
@@ -732,7 +738,7 @@
       const champ = d && d.champs.length ? `<div class="tent-champ"><span class="crown" aria-hidden="true">👑</span> <b>${d.champs.map(esc).join(" &amp; ")}</b> <span class="tent-au">${fmtAu(d.ranked[0][1])} AU${d.champs.length > 1 ? " each" : ""}</span></div>
         ${d.ranked.length > d.champs.length ? `<div class="tent-rest muted">${d.ranked.slice(d.champs.length, d.champs.length + 2).map(([n, au]) => `${esc(n)} ${fmtAu(au)}`).join(" · ")}</div>` : ""}`
         : `<div class="tent-champ muted">No sightings yet. Unclaimed!</div>`;
-      return `<article class="card tent"><div class="tent-emoji" aria-hidden="true">${L.emoji}</div>
+      return `<article class="card tent"><div class="tent-emoji" aria-hidden="true">${cryptidArt(t, "tn-" + TENT_ORDER.indexOf(t), L.emoji)}</div>
         <div class="tent-body"><h3>${esc(t)}</h3><p class="tent-blurb">${esc(L.blurb)}</p>${champ}
         <div class="tent-n muted">${d ? plural(d.n, "pour") : "0 pours"}</div></div></article>`;
     }).join("");
