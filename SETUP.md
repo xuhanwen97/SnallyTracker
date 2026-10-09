@@ -7,7 +7,8 @@ You need no servers, no money and no coding. You will copy, paste and click.
 You need:
 - A Google account (a normal Gmail account is fine).
 - A computer with a web browser. Doing this on a phone is painful.
-- The file `snally/backend/Code.gs` from this repo, opened so you can copy all of it.
+- The file `backend/Code.gs` from the repo (<https://github.com/xuhanwen97/SnallyTracker/blob/main/backend/Code.gs>),
+  opened so you can copy all of it.
 
 ---
 
@@ -27,7 +28,8 @@ You need:
 ## Step 3: Paste the code
 
 1. Click inside the editor, select everything (**Ctrl+A**, or **Cmd+A** on a Mac) and press **Delete**. The file should now be empty.
-2. Open `snally/backend/Code.gs` from this repo, select all of it and copy it.
+2. Open `backend/Code.gs` from the repo, select all of it and copy it. (On GitHub, the **Copy raw file** button
+   above the code copies the whole file.)
 3. Paste it into the empty editor.
 4. Click the **Save** icon (the floppy disk) or press **Ctrl+S** / **Cmd+S**.
 
@@ -54,7 +56,9 @@ You need:
    You can delete the empty **Sheet1** tab: right-click it, then **Delete**.
 
 If the log shows `Could not download the beer list (HTTP 404)`, the beer list
-isn't on GitHub yet. Ask Claude to push it, then run **setup** again.
+isn't reachable at
+<https://raw.githubusercontent.com/xuhanwen97/SnallyTracker/main/beers.json>
+(it must be pushed to `main`, and the repo must be public). Fix that, then run **setup** again.
 
 ## Step 5: Change the admin PIN
 
@@ -91,7 +95,8 @@ People pick their name from this list in the app. They don't need logins.
 4. Click **Deploy**. If it asks you to authorize again, repeat the clicks from Step 4.
 5. You'll see a **Web app URL** ending in **`/exec`**, like
    `https://script.google.com/macros/s/AKfy..../exec`. Click **Copy**.
-6. **Paste that URL to Claude.** It goes into `snally/config.js` as `API_URL`.
+6. **Paste that URL to Claude.** It goes into `config.js` as `API_URL`. Once that's pushed, the app at
+   <https://xuhanwen97.github.io/SnallyTracker/> talks to your sheet.
 
 Check that it works: paste the URL into a new browser tab and add `?action=state`
 to the end. You should see something like
@@ -116,7 +121,7 @@ The URL stays the same, so you don't need to change anything in the app.
 ## The "Snally" menu in the sheet
 
 After setup, reload the sheet tab. A **Snally** menu appears to the right of **Help**.
-The first time you use it, Google asks you to authorize again (same clicks as Step 4).
+If Google asks you to authorize when you first use it, repeat the clicks from Step 4.
 
 - **Setup / reload beers** re-creates any missing tabs and re-downloads the beer list
   into the **Beers** tab, replacing what's there. Use it if the beer list gets updated.

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Tests for Code.gs. No dependencies:  node snally/backend/test.js
+ * Tests for Code.gs. No dependencies:  node backend/test.js
  *
  * Loads Code.gs into a vm context with small in-memory fakes of the Apps Script
  * services it uses, then drives doGet/doPost the way the frontend would.
@@ -413,9 +413,10 @@ test('self-delete refused when the timestamp is blank/unparseable', () => {
 
 test('blanked-out rows in Pours are not served as pours', () => {
   const sheet = ss.getSheetByName('Pours');
-  const r = sheet.objects().findIndex((x) => x.id === 'c-nots') + 2;
+  post({ action: 'pour', drinker: 'Sam', beerId: 'r3', size: 'standard', rating: 3, clientId: 'c-after' });
+  const r = sheet.objects().findIndex((x) => x.id === 'c-nots') + 2; // a row in the middle
   for (let c = 1; c <= 14; c++) sheet.set(r, c, '');
-  post({ action: 'pour', drinker: 'Sam', beerId: 'r3', size: 'standard', rating: 3, clientId: 'c-after' }); // bump version
+  post({ action: 'pour', drinker: 'Sam', beerId: 'r3', size: 'standard', rating: 3, clientId: 'c-after2' }); // bump version
   const st = get({ action: 'state' });
   assert.ok(st.pours.every((p) => p.id && p.drinker), JSON.stringify(st.pours.filter((p) => !p.id)));
 });

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Build snally/beers.json from the "Snallygaster 2026 Beer List - Public" CSV export.
+"""Build beers.json from the "Snallygaster 2026 Beer List - Public" CSV export.
 
-Usage:  python3 -I snally/tools/build_beers.py path/to/beers.csv [out.json]
+Usage:  python3 -I tools/build_beers.py path/to/beers.csv [out.json]
 
 Stdlib only. Row 1 of the CSV is a title row, row 2 is the header
 (Brewery, Beer Name, Beer Style, ABV, Festival Location); data starts at row 3.
