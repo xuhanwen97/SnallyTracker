@@ -1,4 +1,4 @@
-// Snally Hoard: pour logger + leaderboard. Vanilla JS, no build step.
+// SnallyTally: pour logger + leaderboard. Vanilla JS, no build step.
 // All backend traffic goes through api(action, payload). With an empty API_URL that
 // function routes to Mock (a localStorage fake of the Apps Script backend) instead.
 (() => {
@@ -31,7 +31,12 @@
   const plural = (n, w, p = w + "s") => `${n} ${n === 1 ? w : p}`;
   const norm = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9.%]+/g, " ").trim();
   const now = () => Date.now() + S.skew; // server-aligned clock
-  const art = (stage, opt) => (window.Snally ? window.Snally.draw(stage, opt) : "");
+  // Each drinker gets their own Snally colors: palette = their place in the Drinkers list (stable as long as the list order is).
+  const palFor = (name) => {
+    const k = String(name || "").toLowerCase(), i = S.drinkers.findIndex((d) => d.toLowerCase() === k);
+    return i >= 0 ? i : [...k].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7);
+  };
+  const art = (stage, opt = {}) => (window.Snally ? window.Snally.draw(stage, { ...opt, palette: opt.who == null ? 0 : palFor(opt.who) }) : "");
   const stageFor = (n) => (window.Snally ? window.Snally.stageFor(n) : Math.min(5, 1 + Math.floor(n / 3)));
   const stageInfo = (st) => (window.Snally ? window.Snally.STAGES[st] : { name: "Stage " + st, title: "Stage " + st, blurb: "" });
   function uuid() {
@@ -52,7 +57,16 @@
   }
   const CLOCK_FMT = new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" }); // toLocaleTimeString per pour is slow at ~1000 pours
   const clock = (ms) => (isFinite(ms) ? CLOCK_FMT.format(ms) : "");
-  const ratingLabel = (r) => LORE.ratings.find((x) => r >= x.min) || { label: "", emoji: "" };
+  // The owner's personal scale (est. 10/27/23): Y · Yu · Yum · Yumm · Yummyy…(4.1–4.9: one extra y per tenth) · Yummy! (perfect)
+  function yum(r) {
+    const t = Math.round(r * 10);
+    if (t >= 50) return "Yummy!";
+    if (t > 40) return "Yumm" + "y".repeat(t - 40 + 1);
+    if (t >= 40) return "Yumm";
+    if (t >= 30) return "Yum";
+    if (t >= 20) return "Yu";
+    return "Y";
+  }
 
   const byNewest = (a, b) => (isFinite(b.tms) ? b.tms : -Infinity) - (isFinite(a.tms) ? a.tms : -Infinity) || 0;
   class NetError extends Error {}
@@ -351,7 +365,7 @@
     box.hidden = false;
     const info = stageInfo(r.stage);
     const next = r.stage < 5 ? (r.stage * 3) - r.n : 0;
-    box.innerHTML = `<div class="my-art">${art(r.stage, { hoard: r.hoard, id: "me" })}</div>
+    box.innerHTML = `<div class="my-art">${art(r.stage, { hoard: r.hoard, id: "me", who: r.name })}</div>
       <div class="my-txt"><div class="my-stage">Your Snally: <b>${esc(info.title)}</b></div>
       <div class="my-stats"><b>${fmtAu(r.au)}</b> AU · ${plural(r.n, "pour")}${r.tentWins ? ` · 🏕️×${r.tentWins}` : ""}</div>
       <div class="my-next">${next > 0 ? `${plural(next, "more pour")} to evolve` : "Fully evolved. Bow before the hoard."}</div></div>`;
@@ -388,8 +402,8 @@
       <div class="res-top"><b class="res-beer">${esc(b.beer)}</b><span class="res-abv">${esc(fmtAbv(b.abv, b.est))}</span></div>
       <div class="res-sub"><span class="res-brew">${esc(b.brewery)}</span>${b.tent ? tentChip(b.tent) : ""}</div>
       ${b.style ? `<div class="res-style">${esc(b.style)}</div>` : ""}</li>`);
-    rows.push(`<li role="option" id="opt-c" class="res res-custom" data-i="custom" aria-selected="false">+ Add a custom drink: <b>“${esc(q.trim())}”</b></li>`);
-    listEl.innerHTML = (F.results.length ? "" : `<li class="res-none" role="presentation">${BEERS.length ? `No festival beer matches “${esc(q.trim())}”.` : "The festival beer list didn't load (try reloading the page). You can add it as a custom drink:"}</li>`) + rows.join("");
+    rows.unshift(`<li role="option" id="opt-c" class="res res-custom" data-i="custom" aria-selected="false">+ Add a custom drink: <b>“${esc(q.trim())}”</b></li>`);
+    listEl.innerHTML = rows.join("") + (F.results.length ? "" : `<li class="res-none" role="presentation">${BEERS.length ? `No festival beer matches “${esc(q.trim())}”.` : "The festival beer list didn't load (try reloading the page). Add it as a custom drink above."}</li>`);
     listEl.hidden = false;
     input.setAttribute("aria-expanded", "true");
   }
@@ -463,7 +477,7 @@
       if (open && F.active >= 0) {
         const o = listEl.querySelectorAll('[role="option"]')[F.active];
         choose(o.dataset.i === "custom" ? "custom" : +o.dataset.i);
-      } else if (open && F.results.length === 1) choose(0);
+      } else if (open && F.results.length === 1) choose(0); // the lone listed beer, not custom
       else { F.showErrors = true; updateForm(); }
     }
   });
@@ -511,10 +525,10 @@
 
   // rating
   function syncRating() {
-    const v = +$("rating").value, l = ratingLabel(v);
+    const v = +$("rating").value, l = yum(v);
     $("ratingVal").textContent = v.toFixed(1);
-    $("ratingLabel").textContent = `${l.label} ${l.emoji}`;
-    $("rating").setAttribute("aria-valuetext", `${v.toFixed(1)} stars, ${l.label}`);
+    $("ratingLabel").textContent = l;
+    $("rating").setAttribute("aria-valuetext", `${v.toFixed(1)} stars, ${l}`);
     $("rating").style.setProperty("--pct", ((v - 1) / 4) * 100 + "%");
   }
   $("rating").addEventListener("input", syncRating);
@@ -523,22 +537,22 @@
 
   function validate() {
     const errs = [];
-    if (!me) errs.push(["drinkerSel", "Choose who's drinking."]);
+    if (!me) errs.push(["drinkerSel", "Choose who's drinking.", 1]);
     if (F.custom) {
-      if (!$("cName").value.trim()) errs.push(["cName", "Give your custom drink a name."]);
+      if (!$("cName").value.trim()) errs.push(["cName", "Give your custom drink a name.", 2]);
       const a = num($("cAbv").value);
-      if (!(a >= 0 && a <= 70)) errs.push(["cAbv", "Enter the drink's ABV (0–70%)."]);
+      if (!(a >= 0 && a <= 70)) errs.push(["cAbv", "Enter the drink's ABV (0–70%).", 2]);
     } else if (F.beer) {
-      if (F.beer.abv == null) { const a = num($("tbdAbv").value); if (!(a >= 0 && a <= 70)) errs.push(["tbdAbv", "This beer's ABV isn't listed yet: enter it (0–70%)."]); }
+      if (F.beer.abv == null) { const a = num($("tbdAbv").value); if (!(a >= 0 && a <= 70)) errs.push(["tbdAbv", "This beer's ABV isn't listed yet: enter it (0–70%).", 2]); }
     } else {
-      errs.push(["beerInput", input.value.trim() ? "Pick a beer from the list (or “+ Add a custom drink” at the bottom)." : "Search for your beer and pick it."]);
+      errs.push(["beerInput", input.value.trim() ? "Pick a beer from the list (or “+ Add a custom drink” at the top)." : "Search for your beer and pick it.", 2]);
     }
     if (sizeVal() === "custom") {
       const oz = num($("customOz").value);
-      if (!(oz > 0 && oz <= MAX_OZ)) errs.push(["customOz", "Custom pour must be more than 0 and at most 5.5 oz."]);
+      if (!(oz > 0 && oz <= MAX_OZ)) errs.push(["customOz", "Custom pour must be more than 0 and at most 5.5 oz.", 3]);
     }
     const r = num($("rating").value);
-    if (!(r >= 1 && r <= 5)) errs.push(["rating", "Rate it from 1 to 5."]);
+    if (!(r >= 1 && r <= 5)) errs.push(["rating", "Rate it from 1 to 5.", 4]);
     return errs;
   }
   function updateForm() {
@@ -546,7 +560,7 @@
     const btn = $("submitBtn");
     btn.disabled = !!errs.length || F.submitting;
     btn.textContent = F.submitting ? "Adding to the hoard…" : "Add to my hoard 🪙";
-    $("formHints").innerHTML = errs.map(([id, m]) => `<li data-for="${id}">${esc(m)}</li>`).join("");
+    $("formHints").innerHTML = errs.map(([id, m, n]) => `<li data-for="${id}"><span class="hint-num" aria-label="Step ${n}">${n}</span>${esc(m)}</li>`).join("");
     $("formHints").classList.toggle("loud", F.showErrors);
     document.querySelectorAll(".pour-form [aria-invalid]").forEach((el) => el.removeAttribute("aria-invalid"));
     if (F.showErrors) errs.forEach(([id]) => $(id) && $(id).setAttribute("aria-invalid", "true"));
@@ -626,8 +640,8 @@
   // ---------- Evolution + toast ----------
   function evolve(s0, s1, n) {
     const a = stageInfo(s0), b = stageInfo(s1);
-    $("evolveFrom").innerHTML = art(s0, { id: "evo-a" }) + `<span>${esc(a.title)}</span>`;
-    $("evolveTo").innerHTML = art(s1, { id: "evo-b" }) + `<span>${esc(b.title)}</span>`;
+    $("evolveFrom").innerHTML = art(s0, { id: "evo-a", who: me }) + `<span>${esc(a.title)}</span>`;
+    $("evolveTo").innerHTML = art(s1, { id: "evo-b", who: me }) + `<span>${esc(b.title)}</span>`;
     $("evolveText").innerHTML = `${plural(n, "pour")} in, your <b>${esc(a.title)}</b> became a <b>${esc(b.title)}</b>! ${esc(b.blurb)}`;
     const dlg = $("evolveDlg");
     if (dlg.showModal) { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute("open", "");
@@ -664,7 +678,7 @@
       const r = top[i];
       if (!r) return `<div class="pod pod-${i + 1} pod-empty" aria-hidden="true"></div>`;
       return `<div class="pod pod-${i + 1}">
-        <div class="pod-art">${art(r.stage, { hoard: r.hoard, id: "pod" + i })}</div>
+        <div class="pod-art">${art(r.stage, { hoard: r.hoard, id: "pod" + i, who: r.name })}</div>
         <div class="pod-name">${esc(r.name)}</div>
         <div class="pod-stage">${esc(stageInfo(r.stage).title)}</div>
         <div class="pod-au"><b>${fmtAu(r.au)}</b> AU</div>
@@ -682,7 +696,7 @@
       return `<article class="card award award-${a.key}">
         <header class="award-h"><span class="award-emoji" aria-hidden="true">${L.emoji}</span><div><h3>${esc(L.name)}</h3><div class="rule">${esc(a.rule)}</div></div></header>
         <p class="story">${esc(L.story)}</p>
-        <div class="leader">${lead ? `<div class="leader-art">${art(lead.stage, { hoard: lead.hoard, id: "aw-" + a.key })}</div>
+        <div class="leader">${lead ? `<div class="leader-art">${art(lead.stage, { hoard: lead.hoard, id: "aw-" + a.key, who: lead.name })}</div>
           <div><div class="leader-name">${esc(lead.name)}</div><div class="leader-val">${a.val(lead)}</div></div>`
           : `<div class="leader-none">Up for grabs${a.min ? ` · first to ${a.min} pours` : ""}</div>`}</div>
         ${rest ? `<ol class="runners">${rest}</ol>` : ""}
@@ -699,7 +713,7 @@
       const wins = r.tentWins ? `🏕️×${r.tentWins}` : "—";
       return `<tr class="rank-row${open ? " open" : ""}" data-name="${esc(r.name)}">
         <td class="c-pos">${r.au > 0 ? i + 1 : "–"}</td>
-        <td class="c-av"><div class="av">${art(r.stage, { hoard: r.hoard, id })}</div></td>
+        <td class="c-av"><div class="av">${art(r.stage, { hoard: r.hoard, id, who: r.name })}</div></td>
         <td class="c-who"><button type="button" class="who-btn" aria-expanded="${open}" aria-controls="${id}-d">${esc(r.name)}</button>
           <div class="who-stage">${esc(st.name)}</div>
           <div class="who-mini"><span>${fmtOz(r.oz)} oz</span> · <span>${fmtPct(r.avgAbv, 1)}</span> · <span>${isFinite(r.avgRating) ? r.avgRating.toFixed(1) + "★" : "–★"}</span>${r.tentWins ? ` · <span>${wins}</span>` : ""}</div></td>
@@ -846,7 +860,7 @@
 
   async function boot() {
     $("demoBanner").hidden = !DEMO;
-    $("mastArt").innerHTML = art(5, { hoard: 1, id: "mast" });
+    $("mastArt").innerHTML = art(3, { hoard: 0.45, id: "mast" }); // stage 5 stays a surprise
     syncSize(); syncRating();
     route();
     renderDrinkers(); renderRecent(); renderBoard(); updateForm();

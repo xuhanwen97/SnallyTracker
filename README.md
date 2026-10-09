@@ -1,6 +1,6 @@
-# Snally Hoard 🐉🪙
+# SnallyTally 🐉🪙
 
-A live leaderboard for friends at **Snallygaster 2026** (DC's beer festival). Every pour you log grows your Snally from an egg to a Mega Elder Snallygaster sitting on a mountain of gold.
+A live leaderboard for friends at **Snallygaster 2026** (DC's beer festival). Every pour you log grows your Snally from an egg into… well, keep drinking and find out.
 
 - **Site:** https://xuhanwen97.github.io/SnallyTracker/ (GitHub Pages, `main`, root)
 - **Backend:** Google Apps Script web app on a Google Sheet (see `SETUP.md`). Participants need no login.

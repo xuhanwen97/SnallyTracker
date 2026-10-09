@@ -1,17 +1,34 @@
 // Snally mascot: five life stages, drawn as inline SVG strings.
 // Stage 1 Egg · 2 Hatchling · 3 Whelp · 4 Drake · 5 Mega Elder Snallygaster.
 // Chibi style: big head, two big sparkly eyes, blushy cheeks, bat wings.
-// Usage: Snally.draw(stage, { hoard: 0..1, id: "unique" }) → "<svg ...>"
+// Usage: Snally.draw(stage, { hoard: 0..1, id: "unique", palette: drinkerIndex }) → "<svg ...>"
 (function (root) {
-  const CUTE = {
-    body: "#f39a5b", shade: "#e07b3c", line: "#5a3220", belly: "#ffe6bf", bellyLine: "#e9b77c",
-    wing: "#a8e0c4", wingDark: "#6fbf98", cheek: "#ff8f8f", beak: "#ffc86b", horn: "#fff1dc", spike: "#a8e0c4",
-    eye: "#3a2218", flame1: "#ff9f43", flame2: "#ffe066", glow: null,
+  // One palette per drinker (assigned by their place in the Drinkers list), so every Snally looks different.
+  // [name, body, shade, belly, wing/spike, wingDark, Mega fire, Mega fire light, Mega fire deep]
+  const PALETTES = [
+    ["Tangerine", "#f39a5b", "#e07b3c", "#ffe6bf", "#a8e0c4", "#6fbf98", "#4fc3ff", "#b8f1ff", "#2f6bff"],
+    ["Mint", "#8fdcb8", "#6cc29c", "#fff3cf", "#ffb3c7", "#f08aa6", "#57e389", "#c8ffd9", "#1f9d55"],
+    ["Bubblegum", "#ff9ec4", "#f07aa8", "#fff0f5", "#b9a7ff", "#9580f0", "#ff5fa8", "#ffd1e6", "#c2185b"],
+    ["Lavender", "#c3a8ff", "#a184f0", "#fff3cf", "#ffd36b", "#f0b23a", "#b07cff", "#e6d6ff", "#6a3cc9"],
+    ["Sky", "#8fcfff", "#66b4f0", "#fffbe6", "#ffb38a", "#f28f5f", "#2ee6d6", "#c4fff9", "#0f9c94"],
+    ["Butter", "#ffd866", "#f0bd3a", "#fff8e1", "#8fd3ff", "#5fb4ea", "#ffcc33", "#fff1b3", "#c98a00"],
+    ["Coral", "#ff9f8f", "#f07a6a", "#fff1e8", "#9fe3c4", "#6cc29c", "#ff4f4f", "#ffc4c4", "#b71c1c"],
+    ["Lagoon", "#6fd6d0", "#4dbab4", "#fff6e0", "#ff9ec4", "#f07aa8", "#b6f23a", "#ecffc4", "#6b9d00"],
+    ["Orchid", "#e6a8e8", "#cf86d2", "#fff3fb", "#9fe3c4", "#6cc29c", "#e040fb", "#f5c6ff", "#8e24aa"],
+    ["Sage", "#b5d48f", "#97ba6c", "#fdf8e4", "#f7b267", "#e0913c", "#ff9f1c", "#ffe0b3", "#d9480f"],
+    ["Cocoa", "#c99a7a", "#ad7d5c", "#fff1dc", "#ffb3c7", "#f08aa6", "#e8ecf5", "#ffffff", "#8a94ad"],
+    ["Cherry", "#ff7a7a", "#e85a5a", "#fff0e0", "#ffd866", "#f0bd3a", "#7c8cff", "#d6dbff", "#3949ab"],
+  ];
+  const pal = (i) => PALETTES[(((i | 0) % PALETTES.length) + PALETTES.length) % PALETTES.length];
+  const cute = (i) => {
+    const [, body, shade, belly, wing, wingDark] = pal(i);
+    return { body, shade, line: "#5a3220", belly, bellyLine: "#e9b77c", wing, wingDark, cheek: "#ff8f8f", beak: "#ffc86b",
+      horn: "#fff1dc", spike: wing, eye: "#3a2218", flame1: "#ff9f43", flame2: "#ffe066", glow: null, accent: wing, deep: wingDark };
   };
-  const MEGA = {
-    body: "#3b3f4e", shade: "#2a2d39", line: "#151722", belly: "#8fd4ff", bellyLine: "#4aa6e0",
-    wing: "#1f2b45", wingDark: "#4fc3ff", cheek: "#4fc3ff", beak: "#9aa3b8", horn: "#e8ecf5",
-    spike: "#4fc3ff", eye: "#6ff0ff", flame1: "#2f9bff", flame2: "#b8f1ff", glow: "#4fc3ff",
+  const mega = (i) => {
+    const [, , , , , , fire, light, deep] = pal(i);
+    return { body: "#3b3f4e", shade: "#2a2d39", line: "#151722", belly: light, bellyLine: fire, wing: "#1f2433", wingDark: fire,
+      cheek: fire, beak: "#9aa3b8", horn: "#e8ecf5", spike: fire, eye: light, flame1: fire, flame2: light, glow: fire, accent: fire, deep };
   };
 
   const coin = (x, y, r = 7) =>
@@ -110,7 +127,7 @@
     if (horns === "nubs") g += `<path d="M78,46 Q76,32 86,38 Z M122,46 Q124,32 114,38 Z" fill="${c.horn}" stroke="${c.line}" stroke-width="2.2" stroke-linejoin="round"/>`;
     if (horns === "big") g += `<path d="M76,48 Q60,22 70,10 Q74,30 90,40 Z M124,48 Q140,22 130,10 Q126,30 110,40 Z" fill="${c.horn}" stroke="${c.line}" stroke-width="2.2" stroke-linejoin="round"/>`;
     if (horns === "mega") g += `<path d="M78,50 Q44,40 30,14 Q58,26 90,40 Z M122,50 Q156,40 170,14 Q142,26 110,40 Z" fill="${c.horn}" stroke="${c.line}" stroke-width="2.2" stroke-linejoin="round"/>` +
-      `<path d="M74,46 Q54,38 44,24 M126,46 Q146,38 156,24" stroke="#4fc3ff" stroke-width="2" fill="none"/>`;
+      `<path d="M74,46 Q54,38 44,24 M126,46 Q146,38 156,24" stroke="${c.accent}" stroke-width="2" fill="none"/>`;
     // head crest (kaiju back-spikes peeking over the head)
     g += [[84, 28, -25, 0.8], [100, 22, 0, 1], [116, 28, 25, 0.8]].map(([x, y, r, k]) =>
       `<path d="M-8,4 Q0,-16 8,4 Z" transform="translate(${x} ${y}) rotate(${r}) scale(${k})" fill="${c.spike}" stroke="${c.line}" stroke-width="2.2" stroke-linejoin="round"/>`).join("");
@@ -119,11 +136,11 @@
     g += `<path d="M60,56 Q60,36 78,28" fill="none" stroke="${c.shade}" stroke-width="3" stroke-linecap="round"/>`;
     // beak-snout + smile
     g += face(100, 60, c, mega);
-    if (mega) g += `<path d="M72,38 L92,45 M128,38 L108,45" fill="none" stroke="#4fc3ff" stroke-width="4" stroke-linecap="round"/>` +
+    if (mega) g += `<path d="M72,38 L92,45 M128,38 L108,45" fill="none" stroke="${c.accent}" stroke-width="4" stroke-linecap="round"/>` +
       `<path d="M90,79 l3,6 l3,-5 M104,79 l3,5 l3,-6" fill="#fff" stroke="${c.line}" stroke-width="1.5" stroke-linejoin="round"/>`; // stern brow + fangs
     // elder whiskers: long wise-dragon mustache curling down from the snout
     if (beard) g += [-1, 1].map(d => `<path d="M${100 + d * 6},73 C${100 + d * 22},74 ${100 + d * 36},84 ${100 + d * 40},100 C${100 + d * 42},110 ${100 + d * 34},114 ${100 + d * 31},106" fill="none" stroke="#e9f6ff" stroke-width="4" stroke-linecap="round"/>` +
-      `<path d="M${100 + d * 6},73 C${100 + d * 22},74 ${100 + d * 36},84 ${100 + d * 40},100" fill="none" stroke="#4fc3ff" stroke-width="1.2" stroke-linecap="round" opacity=".8"/>`).join("");
+      `<path d="M${100 + d * 6},73 C${100 + d * 22},74 ${100 + d * 36},84 ${100 + d * 40},100" fill="none" stroke="${c.accent}" stroke-width="1.2" stroke-linecap="round" opacity=".8"/>`).join("");
     if (mega) g += `<g transform="rotate(-35 68 84)">${flame(68, 84, 1.1, c)}</g><g transform="rotate(35 132 84)">${flame(132, 84, 1.1, c)}</g>`; // Mega X jaw flames
     return g;
   }
@@ -141,7 +158,7 @@
     stage = Math.max(1, Math.min(5, stage | 0));
     const hoard = Math.max(0, Math.min(1, opt.hoard ?? [0, 0, .08, .25, .5, 1][stage]));
     const id = opt.id || "s" + stage;
-    const c = stage === 5 ? MEGA : CUTE;
+    const c = stage === 5 ? mega(opt.palette) : cute(opt.palette);
     let body = "", back = "";
 
     if (stage === 1) {
@@ -178,13 +195,13 @@
       body = `<g transform="translate(4 -2) scale(.96)">` + dragon(c, { wingSpan: 76, horns: "mega", tailFlame: 1.5, beard: true, mega: true }) + `</g>`;
       body += `<path d="M86,10 L90,-2 L96,8 L100,-4 L104,8 L110,-2 L114,10 Z" fill="#ffd34d" stroke="#c9961a" stroke-width="1.8" transform="translate(0 20)"/>`; // tiny crown
     }
-    const defs = stage === 5 ? `<defs><radialGradient id="aura-${id}"><stop offset="0" stop-color="#4fc3ff" stop-opacity=".55"/><stop offset=".6" stop-color="#2f6bff" stop-opacity=".18"/><stop offset="1" stop-color="#2f6bff" stop-opacity="0"/></radialGradient></defs>` : "";
+    const defs = stage === 5 ? `<defs><radialGradient id="aura-${id}"><stop offset="0" stop-color="${c.accent}" stop-opacity=".55"/><stop offset=".6" stop-color="${c.deep}" stop-opacity=".18"/><stop offset="1" stop-color="${c.deep}" stop-opacity="0"/></radialGradient></defs>` : "";
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="snally stage-${stage}" role="img" aria-label="Snally, ${STAGES[stage].title}">${defs}${back}${body}</svg>`;
   }
 
   // Pours → stage: 3 pours per stage, 12+ is Mega Elder.
   const stageFor = (pours) => Math.min(5, 1 + Math.floor(pours / 3));
 
-  const api = { draw, stageFor, STAGES, coin };
+  const api = { draw, stageFor, STAGES, coin, PALETTES };
   if (typeof module !== "undefined") module.exports = api; else root.Snally = api;
 })(typeof window !== "undefined" ? window : globalThis);
