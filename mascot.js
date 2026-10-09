@@ -18,6 +18,12 @@
     ["Sage", "#b5d48f", "#97ba6c", "#fdf8e4", "#f7b267", "#e0913c", "#ff9f1c", "#ffe0b3", "#d9480f"],
     ["Cocoa", "#c99a7a", "#ad7d5c", "#fff1dc", "#ffb3c7", "#f08aa6", "#e8ecf5", "#ffffff", "#8a94ad"],
     ["Cherry", "#ff7a7a", "#e85a5a", "#fff0e0", "#ffd866", "#f0bd3a", "#7c8cff", "#d6dbff", "#3949ab"],
+    ["Periwinkle", "#a9b4ff", "#8592f0", "#fff6e6", "#ffb38a", "#f28f5f", "#9ff6ff", "#e8feff", "#3aa0b8"],
+    ["Pistachio", "#cde6a0", "#aecb7c", "#fffbe8", "#c3a8ff", "#a184f0", "#ffb199", "#ffe3d9", "#c96a4f"],
+    ["Watermelon", "#ff8fa3", "#ec6d84", "#f2ffe9", "#8fdcb8", "#6cc29c", "#00d68f", "#b3ffe3", "#00875a"],
+    ["Apricot", "#ffbf7a", "#f0a050", "#fff6e6", "#8fcfff", "#66b4f0", "#ff2e63", "#ffc2d1", "#a3123c"],
+    ["Storm", "#9fb3c8", "#7f95ad", "#fdf8ee", "#ffd866", "#f0bd3a", "#fff04d", "#fffbd0", "#b8a600"],
+    ["Plum", "#b47ec9", "#9660ad", "#fff1f8", "#ffcf8a", "#f0ad55", "#4dffc3", "#d0fff0", "#13a87a"],
   ];
   const pal = (i) => PALETTES[(((i | 0) % PALETTES.length) + PALETTES.length) % PALETTES.length];
   const cute = (i) => {
