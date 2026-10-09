@@ -368,7 +368,28 @@
     box.innerHTML = `<div class="my-art">${art(r.stage, { hoard: r.hoard, id: "me", who: r.name })}</div>
       <div class="my-txt"><div class="my-stage">Your Snally: <b>${esc(info.title)}</b></div>
       <div class="my-stats"><b>${fmtAu(r.au)}</b> AU · ${plural(r.n, "pour")}${r.tentWins ? ` · 🏕️×${r.tentWins}` : ""}</div>
-      <div class="my-next">${next > 0 ? `${plural(next, "more pour")} to evolve` : "Fully evolved. Bow before the hoard."}</div></div>`;
+      <div class="my-next">${next > 0 ? `${plural(next, "more pour")} to evolve` : "Fully evolved. Bow before the hoard."}</div></div>
+      ${stampBook(r)}`;
+  }
+
+  // Awards the drinker currently leads (ties share) + tents they're champion of, drawn as postage stamps.
+  function awardsHeldBy(name) {
+    return AWARDS.filter((a) => {
+      const elig = C.list.filter((r) => a.ok(r) && (!a.min || r.n >= a.min)).sort(a.sort);
+      return elig.length && elig.some((r) => r.name === name && a.sort(r, elig[0]) === 0);
+    });
+  }
+  function stampBook(r) {
+    const total = AWARDS.length + TENT_ORDER.filter((t) => !LORE.tents[t].hiddenUnlessPoured).length;
+    const stamp = (key, label, emoji, kind, i) =>
+      `<li class="stamp stamp-${kind}" style="--tilt:${[-6, 4, -3, 7, -5, 2][i % 6]}deg" title="${esc(label)}">
+        <div class="stamp-art">${cryptidArt(key, "st-" + kind + "-" + i, emoji)}</div><div class="stamp-name">${esc(label)}</div></li>`;
+    const aw = awardsHeldBy(r.name).map((a, i) => { const L = LORE.awards[a.key] || {}; return stamp(a.key, (L.name || a.key).replace(/^The /, ""), L.emoji, "award", i); });
+    const tn = r.tentsWon.map((t, i) => stamp(t, t, (LORE.tents[t] || {}).emoji, "tent", i + aw.length));
+    const n = aw.length + tn.length;
+    return `<div class="my-stamps"><div class="stamps-h">Stamp book <span class="muted">${n} / ${total}</span></div>
+      ${n ? `<ul class="stamps">${aw.join("")}${tn.join("")}</ul>`
+        : `<p class="stamps-none muted">No stamps yet. Lead an award or top a tent's Field Guide page to earn one.</p>`}</div>`;
   }
 
   function renderRecent() {

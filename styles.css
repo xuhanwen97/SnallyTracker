@@ -168,7 +168,7 @@ select.input {
 .who-chosen { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 18px; }
 .who-chosen strong { font-family: var(--f-display); font-size: 22px; color: var(--orange-d); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .who-chosen strong { color: var(--orange); } }
-.my-snally { display: flex; gap: 12px; align-items: center; margin-top: 10px; padding: 10px; border-radius: 16px; background: var(--card-2); border: 2px dashed var(--mint-d); }
+.my-snally { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 10px; padding: 10px; border-radius: 16px; background: var(--card-2); border: 2px dashed var(--mint-d); }
 .my-art { width: 84px; flex: none; }
 .my-art svg { width: 100%; height: auto; display: block; }
 .my-stage { font-size: 15px; }
@@ -176,6 +176,24 @@ select.input {
 .my-stats b { font-family: var(--f-display); font-size: 20px; color: var(--orange-d); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .my-stats b { color: var(--gold); } }
 .my-next { font-size: 13px; color: var(--muted); font-weight: 700; }
+.my-txt { flex: 1; min-width: 0; }
+/* stamp book: awards held + tents championed */
+.my-stamps { flex-basis: 100%; border-top: 2px dashed var(--mint-d); padding-top: 8px; }
+.stamps-h { font-family: var(--f-display); font-size: 15px; }
+.stamps { list-style: none; margin: 8px 0 2px; padding: 0; display: flex; flex-wrap: wrap; gap: 12px 10px; }
+.stamp {
+  width: 74px; padding: 5px 5px 4px; background: #fffaf0; border: 2px solid var(--brown); border-radius: 3px; transform: rotate(var(--tilt));
+  outline: 3px dotted #fffaf0; outline-offset: 1px; box-shadow: 0 3px 0 rgba(46, 24, 13, .35); position: relative; color: #2e180d;
+}
+.stamp-art { aspect-ratio: 1; border: 1.5px solid rgba(90, 50, 32, .35); border-radius: 2px; overflow: hidden; background: color-mix(in srgb, var(--mint) 35%, #fff8ec); display: grid; place-items: center; font-size: 30px; }
+.stamp-award .stamp-art { background: color-mix(in srgb, var(--gold) 40%, #fff8ec); }
+.stamp-art svg { width: 100%; height: 100%; display: block; }
+.stamp-name { font-size: 9.5px; font-weight: 900; text-align: center; line-height: 1.1; margin-top: 3px; overflow-wrap: normal; hyphens: auto; }
+.stamp::after { /* ink postmark */
+  content: ""; position: absolute; right: -8px; top: -8px; width: 30px; height: 30px; border-radius: 50%;
+  border: 2.5px solid rgba(200, 60, 60, .7); box-shadow: inset 0 0 0 3px transparent, inset 0 0 0 4.5px rgba(200, 60, 60, .45); transform: rotate(-18deg);
+}
+.stamps-none { margin: 4px 0 0; font-size: 13px; }
 
 /* combobox */
 .combo { position: relative; }
