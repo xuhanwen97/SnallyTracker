@@ -103,7 +103,7 @@
 
   // ---------- Demo backend (same API, localStorage) ----------
   const Mock = (() => {
-    const KEY = "snally-demo-v1", PIN = "1234";
+    const KEY = "snally-demo-v2", PIN = "1234";
     let db = null;
     const save = () => LS.set(KEY, JSON.stringify(db));
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -112,7 +112,11 @@
       const R = rng(20261010);
       const names = ["Maya", "Dev", "Priya", "Theo", "Jordan", "Sam", "Rosa", "Kenji"];
       const counts = [14, 12, 10, 9, 8, 7, 6, 3];
-      const pool = BEERS.filter((b) => b.abv != null && b.tent);
+      const all = BEERS.filter((b) => b.abv != null && b.tent);
+      // a short "buzz list" most people hit, so Sightings has repeat beers
+      const buzz = all.length ? Array.from({ length: 22 }, () => all[(R() * all.length) | 0]) : [];
+      const pool = all;
+      const pickFrom = () => { const src = R() < .55 ? buzz : all; return src[(R() * src.length) | 0]; };
       const fallback = [{ id: null, brewery: "Demo Brewing", beer: "Placeholder Pils", style: "Pilsner", abv: 5, tent: "Rodan" }];
       const pours = [];
       const end = Date.now() - 4 * 60 * 1000, span = 4 * 3600 * 1000;
@@ -120,8 +124,8 @@
         // each drinker leans toward lighter or heavier beers so the averages differ
         const lean = i % 3 === 0 ? 1 : i % 3 === 1 ? -1 : 0;
         for (let k = 0; k < counts[i]; k++) {
-          let b = pool.length ? pool[(R() * pool.length) | 0] : fallback[0];
-          if (pool.length && lean) { const c = pool[(R() * pool.length) | 0]; if (lean * (c.abv - b.abv) > 0) b = c; }
+          let b = pool.length ? pickFrom() : fallback[0];
+          if (pool.length && lean) { const c = pickFrom(); if (lean * (c.abv - b.abv) > 0) b = c; }
           const r = R(), size = r < .2 ? "small" : r < .8 ? "standard" : "brim";
           pours.push({
             id: "d" + pours.length, t: new Date(end - span * R()).toISOString(), drinker: name,
@@ -398,7 +402,7 @@
       F.beer = F.results[which]; F.custom = false;
       $("tbdAbv").value = "";
     }
-    F.clientId = null;
+    F.clientId = null; F.showErrors = false;
     renderChosen();
     updateForm();
     if (F.custom) $("cAbv").focus({ preventScroll: true });
@@ -429,7 +433,11 @@
     } else box.innerHTML = "";
   }
 
-  input.addEventListener("input", () => { openResults(); updateForm(); });
+  input.addEventListener("input", () => {
+    openResults(); updateForm();
+    // on phones, lift the search box up so the result list isn't hidden under the keyboard
+    if (!listEl.hidden && input.getBoundingClientRect().top > window.innerHeight * 0.35) $("beerSearch").scrollIntoView({ block: "start", behavior: "smooth" });
+  });
   input.addEventListener("focus", () => { if (input.value.trim()) openResults(); });
   input.addEventListener("keydown", (e) => {
     const open = !listEl.hidden;
@@ -637,12 +645,12 @@
     const top = list.filter((r) => r.au > 0).slice(0, 3);
     $("podium").innerHTML = top.length ? [1, 0, 2].map((i) => {
       const r = top[i];
-      if (!r) return `<div class="step step-${i + 1} step-empty" aria-hidden="true"></div>`;
-      return `<div class="step step-${i + 1}">
-        <div class="step-art">${art(r.stage, { hoard: r.hoard, id: "pod" + i })}</div>
-        <div class="step-name">${esc(r.name)}</div>
-        <div class="step-stage">${esc(stageInfo(r.stage).title)}</div>
-        <div class="step-au"><b>${fmtAu(r.au)}</b> AU</div>
+      if (!r) return `<div class="pod pod-${i + 1} pod-empty" aria-hidden="true"></div>`;
+      return `<div class="pod pod-${i + 1}">
+        <div class="pod-art">${art(r.stage, { hoard: r.hoard, id: "pod" + i })}</div>
+        <div class="pod-name">${esc(r.name)}</div>
+        <div class="pod-stage">${esc(stageInfo(r.stage).title)}</div>
+        <div class="pod-au"><b>${fmtAu(r.au)}</b> AU</div>
         <div class="block"><span>${["🥇", "🥈", "🥉"][i]}</span><b>${i + 1}</b></div></div>`;
     }).join("") : `<p class="empty card">No pours yet. Every dragon starts as an egg. 🥚</p>`;
 
@@ -677,7 +685,7 @@
         <td class="c-av"><div class="av">${art(r.stage, { hoard: r.hoard, id })}</div></td>
         <td class="c-who"><button type="button" class="who-btn" aria-expanded="${open}" aria-controls="${id}-d">${esc(r.name)}</button>
           <div class="who-stage">${esc(st.name)}</div>
-          <div class="who-mini">${fmtOz(r.oz)} oz · ${fmtPct(r.avgAbv, 1)} · ${isFinite(r.avgRating) ? r.avgRating.toFixed(1) + "★" : "–★"}${r.tentWins ? ` · ${wins}` : ""}</div></td>
+          <div class="who-mini"><span>${fmtOz(r.oz)} oz</span> · <span>${fmtPct(r.avgAbv, 1)}</span> · <span>${isFinite(r.avgRating) ? r.avgRating.toFixed(1) + "★" : "–★"}</span>${r.tentWins ? ` · <span>${wins}</span>` : ""}</div></td>
         <td class="c-num c-au">${fmtAu(r.au)}</td>
         <td class="c-num">${r.n}</td>
         <td class="c-num c-wide">${fmtOz(r.oz)}</td>
