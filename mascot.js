@@ -157,7 +157,7 @@
     { name: "Hatchling", title: "Hatchling", blurb: "Still wearing its shell as a hat." },
     { name: "Whelp", title: "Whelp", blurb: "Stubby wings, big appetite, first coins." },
     { name: "Drake", title: "Drake", blurb: "Horns are in. The hoard is growing." },
-    { name: "Mega Elder", title: "Mega Elder Snallygaster", blurb: "Blue fire. Ancient whiskers. A mountain of gold." },
+    { name: "Mega Elder", title: "Mega Elder Snallygaster", blurb: "Elemental fire. Ancient whiskers. A mountain of gold." },
   ];
 
   function draw(stage, opt = {}) {

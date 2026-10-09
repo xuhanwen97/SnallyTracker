@@ -5,8 +5,10 @@
   const C = root.CRYPTIDS = root.CRYPTIDS || {};
   const L = "#5a3220";
   const SW = `stroke="${L}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"`;
-  const P = (d, f, x = "") => `<path d="${d}" fill="${f}" ${SW}${x}/>`;
-  const E = (cx, cy, rx, ry, f, x = "") => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${f}" ${SW}${x}/>`;
+  // outline attrs + per-shape overrides (an override replaces the default: duplicate attributes are invalid SVG and HTML keeps the first)
+  const sw = (x) => { let s = SW; for (const [, k] of x.matchAll(/([\w-]+)="/g)) s = s.replace(new RegExp(`(^|\\s)${k}="[^"]*"`), ""); return s.trim() + x; };
+  const P = (d, f, x = "") => `<path d="${d}" fill="${f}" ${sw(x)}/>`;
+  const E = (cx, cy, rx, ry, f, x = "") => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${f}" ${sw(x)}/>`;
   const F = (cx, cy, rx, ry, f, x = "") => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${f}"${x}/>`;
   const line = (d, c = L, w = 2.5) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
   // outlined tube: chocolate stroke under a coloured stroke

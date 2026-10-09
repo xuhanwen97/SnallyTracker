@@ -670,7 +670,7 @@
       ok: (r) => r.au > 0, sort: (a, b) => b.au - a.au, val: (r) => fmtAu(r.au) + " AU" },
     { key: "chessie", rule: "Most total volume", formula: "Total volume = Σ oz over every counted pour",
       ok: (r) => r.oz > 0, sort: (a, b) => b.oz - a.oz, val: (r) => fmtOz(r.oz) + " oz" },
-    { key: "goatman", rule: "Highest average ABV · min 7 pours", formula: "Avg ABV = Total AU ÷ Total oz (volume-weighted)", min: MIN_AVG_POURS,
+    { key: "gulper", rule: "Highest average ABV · min 7 pours", formula: "Avg ABV = Total AU ÷ Total oz (volume-weighted)", min: MIN_AVG_POURS,
       ok: (r) => isFinite(r.avgAbv), sort: (a, b) => b.avgAbv - a.avgAbv, val: (r) => fmtPct(r.avgAbv) },
     { key: "bunnyman", rule: "Lowest average ABV · min 7 pours", formula: "Avg ABV = Total AU ÷ Total oz (volume-weighted)", min: MIN_AVG_POURS,
       ok: (r) => isFinite(r.avgAbv), sort: (a, b) => a.avgAbv - b.avgAbv, val: (r) => fmtPct(r.avgAbv) },

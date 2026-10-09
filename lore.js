@@ -9,9 +9,9 @@ window.SNALLY_LORE = {
       emoji: "🌊", name: "Chessie",
       story: "The Chesapeake Bay's own sea serpent — dozens of sightings in the '70s and '80s and a 1982 video off Kent Island. It drinks the whole bay.",
     },
-    goatman: {
-      emoji: "🔥", name: "Goatman",
-      story: "Half man, half goat, axe in hand, haunting Fletchertown Road in Prince George's County. Legend says he's an experiment gone wrong at the Beltsville agricultural lab.",
+    gulper: {
+      emoji: "🐟", name: "The Potomac Gulper",
+      story: "Our very own cryptid, first sighted by Maddie: a catfish the size of a kayak hauled out of the Potomac. Whiskers like jumper cables, a faint green glow, decades of feeding on whatever washes downstream. Now it only drinks the strong stuff.",
     },
     bunnyman: {
       emoji: "🐰", name: "Bunnyman",

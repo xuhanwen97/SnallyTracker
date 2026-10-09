@@ -302,7 +302,7 @@ select.input {
 .award::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 8px; background: var(--accent, var(--mint)); }
 .award-snallygaster { --accent: var(--gold); }
 .award-chessie { --accent: #7cc4e8; }
-.award-goatman { --accent: var(--orange); }
+.award-gulper { --accent: #9be36b; }
 .award-bunnyman { --accent: #f5b5c8; }
 .award-h { display: flex; gap: 12px; align-items: center; margin-top: 4px; }
 .award-emoji {

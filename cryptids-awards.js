@@ -29,31 +29,84 @@
   const flame = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0,8 C-12,2 -9,-12 -3,-20 C-2,-12 4,-12 2,-24 C14,-14 13,2 0,8 Z" fill="#ff9f43" ${O} stroke-width="${2 / s}"/><path d="M0,6 C-6,2 -5,-6 -1,-11 C0,-6 4,-6 3,-13 C9,-6 7,2 0,6 Z" fill="#ffe066"/></g>`;
   const mirror = (g) => g + `<g transform="matrix(-1 0 0 1 200 0)">${g}</g>`;
 
-  // ── Snallygaster: crowned dragon-bird, feathery wings, beak, curly chin tentacles ──
+  // Rounded dorsal plate pointing "up" in local coords, at (x,y) rotated a degrees (wrap in a filled, outlined <g>).
+  const plate = (x, y, a, s) => `<path transform="translate(${x} ${y}) rotate(${a}) scale(${s})" d="M-9,6 C-10,-4 -5,-13 0,-17 C5,-13 10,-4 9,6 Z"/>`;
+
+  // ── Snallygaster: festival mascot, a chibi orange kaiju going "rawr", crowned overall winner ──
   C.snallygaster = (id) => {
+    const B = "#f08a4b", K = "#ffe6bf", M = "#a8e0c4";
     let g = "";
-    // feathered wings
-    g += mirror(`<path d="M76,122 C64,104 42,94 24,98 Q12,106 24,113 Q12,121 26,128 Q18,138 34,140 Q32,150 50,147 Q64,146 78,144 Z" fill="#a8e0c4" ${O}/>` +
-      `<path d="M70,124 C56,114 40,112 30,113 M70,132 C58,128 44,128 34,129 M72,140 C62,138 54,140 46,142" fill="none" stroke="#6fbf98" stroke-width="2.2" stroke-linecap="round"/>`);
-    // body, belly, feet
-    g += `<ellipse cx="100" cy="154" rx="36" ry="30" fill="#f39a5b" ${O}/><ellipse cx="100" cy="160" rx="22" ry="19" fill="#ffe6bf"/>`;
-    g += mirror(`<ellipse cx="83" cy="184" rx="13" ry="6.5" fill="#ffc86b" ${O}/>`);
-    // curly tentacles under chin
-    g += tube("M86,122 C80,140 94,144 88,156 C85,162 79,158 82,153", "#ff9fb5", 6) +
-      tube("M114,122 C120,140 106,144 112,156 C115,162 121,158 118,153", "#ff9fb5", 6) +
-      tube("M100,124 C100,142 106,150 100,162 C97,167 92,163 95,159", "#ffb8c8", 6);
-    // head
-    g += `<ellipse cx="100" cy="88" rx="50" ry="42" fill="#f39a5b" ${O}/><path d="M58,82 Q58,62 76,52" fill="none" stroke="#e07b3c" stroke-width="3" stroke-linecap="round"/>`;
-    // crown
-    g += `<g transform="rotate(-8 100 46)"><path d="M76,54 L70,22 L87,38 L100,16 L113,38 L130,22 L124,54 Z" fill="#ffd34d" stroke="#c9961a" stroke-width="2.5" stroke-linejoin="round"/>` +
-      `<path d="M77,48 L123,48" stroke="#c9961a" stroke-width="2"/>` +
-      `<circle cx="70" cy="22" r="3.5" fill="#fff2a8" stroke="#c9961a" stroke-width="1.5"/><circle cx="100" cy="16" r="4" fill="#fff2a8" stroke="#c9961a" stroke-width="1.5"/><circle cx="130" cy="22" r="3.5" fill="#fff2a8" stroke="#c9961a" stroke-width="1.5"/>` +
-      `<circle cx="100" cy="40" r="5" fill="#ff5d8f" stroke="#a8325b" stroke-width="1.5"/><circle cx="85" cy="43" r="3" fill="#5dd6ff"/><circle cx="115" cy="43" r="3" fill="#5dd6ff"/></g>`;
-    g += face(100, 84, 1, { nose: false, mouth: false });
-    // little beak + smile
-    g += `<path d="M90,96 Q100,91 110,96 Q105,104 100,107 Q95,104 90,96 Z" fill="#ffc86b" ${O} stroke-width="2.2"/>` +
-      `<path d="M95,104 Q100,111 105,104" fill="#ff7f9e" ${O} stroke-width="2"/>`;
+    // thick tail curling behind (right), with plates along its top
+    g += `<g fill="${M}" ${O}>` + plate(150, 140, 62, .8) + plate(166, 126, 30, .7) + plate(178, 112, 8, .6) + `</g>`;
+    g += `<path d="M118,168 C140,170 164,160 172,144 C178,132 186,120 180,106 C176,98 166,100 168,108 C172,118 158,128 148,134 C136,142 124,144 112,146 Z" fill="${B}" ${O}/>`;
+    // dorsal plates peeking behind head + back (left side, then over the top)
+    g += `<g fill="${M}" ${O}>` + plate(42, 130, -112, .9) + plate(40, 104, -95, 1) + plate(46, 76, -72, 1.05) + plate(62, 52, -48, 1) + plate(84, 40, -22, .85) + `</g>`;
+    // stubby legs with white claws
+    g += mirror(`<ellipse cx="80" cy="178" rx="15" ry="13" fill="${B}" ${O}/>` +
+      `<path d="M70,188 l3,-6 l3,6 Z M78,189 l3,-6 l3,6 Z M86,188 l3,-6 l3,6 Z" fill="#fff" stroke="${L}" stroke-width="1.5" stroke-linejoin="round"/>`);
+    // chunky body + cream belly with stripes
+    g += `<ellipse cx="100" cy="150" rx="38" ry="32" fill="${B}" ${O}/><ellipse cx="100" cy="156" rx="24" ry="22" fill="${K}"/>` +
+      `<path d="M84,152 Q100,157 116,152 M86,164 Q100,169 114,164" fill="none" stroke="#f3c48e" stroke-width="2.2" stroke-linecap="round"/>`;
+    // tiny raised arms with claws (rawr!)
+    g += mirror(`<path d="M70,156 C56,154 46,144 46,132 C46,125 55,123 58,130 C60,137 66,142 74,143 Z" fill="${B}" ${O}/>` +
+      `<path d="M42,130 l4,-7 l3,7 Z M50,126 l5,-6 l2,7 Z" fill="#fff" stroke="${L}" stroke-width="1.5" stroke-linejoin="round"/>`);
+    // big head
+    g += `<ellipse cx="100" cy="86" rx="52" ry="44" fill="${B}" ${O}/>`;
+    // tilted gold crown with gems
+    g += `<g transform="rotate(12 112 44)"><path d="M92,50 L88,26 L101,38 L112,20 L123,38 L136,26 L132,50 Z" fill="#ffd34d" stroke="#c9961a" stroke-width="2.5" stroke-linejoin="round"/>` +
+      `<path d="M93,45 L131,45" stroke="#c9961a" stroke-width="2"/><circle cx="88" cy="26" r="3" fill="#fff2a8" stroke="#c9961a" stroke-width="1.5"/><circle cx="112" cy="20" r="3.5" fill="#fff2a8" stroke="#c9961a" stroke-width="1.5"/><circle cx="136" cy="26" r="3" fill="#fff2a8" stroke="#c9961a" stroke-width="1.5"/>` +
+      `<circle cx="112" cy="38" r="4.2" fill="#ff5d8f" stroke="#a8325b" stroke-width="1.5"/><circle cx="99" cy="41" r="2.6" fill="#5dd6ff"/><circle cx="125" cy="41" r="2.6" fill="#5dd6ff"/></g>`;
+    g += face(100, 80, 1, { nose: false, mouth: false });
+    // furrowed angry-cute brows + nostrils
+    g += `<path d="M70,62 Q80,64 91,70 M130,62 Q120,64 109,70" fill="none" stroke="${L}" stroke-width="4" stroke-linecap="round"/>` +
+      `<circle cx="95" cy="96" r="1.6" fill="${L}"/><circle cx="105" cy="96" r="1.6" fill="${L}"/>`;
+    // open toothy grin: dark mouth, pink tongue, tiny triangle teeth
+    g += `<path d="M80,101 Q100,106 120,101 Q116,122 100,122 Q84,122 80,101 Z" fill="#7a2e2e" ${O}/>` +
+      `<path d="M88,117 Q100,108 112,117 Q106,121 100,121 Q94,121 88,117 Z" fill="#ff7f9e"/>` +
+      `<path d="M83,102.5 l3.5,6 l3.5,-5 Z M110,103.5 l3.5,5 l3.5,-6 Z M95,104.5 l2.5,4.5 l2.5,-4.5 Z M100,104.5 l2.5,4.5 l2.5,-4.5 Z" fill="#fff" stroke="${L}" stroke-width="1.2" stroke-linejoin="round"/>`;
     return svg("Snallygaster", g);
+  };
+
+  // ── Potomac Gulper: giant mutant river catfish, hook in lip, sipping a glowing toxic-green stout ──
+  C.gulper = (id) => {
+    const B = "#8c9a5b", D = "#6f7d44", K = "#dfe3b0", G = "#9dff5a";
+    let g = "";
+    // faint toxic aura
+    g += `<ellipse cx="96" cy="112" rx="86" ry="72" fill="${G}" opacity=".25"/>`;
+    // fishing line + tail fin behind
+    g += `<path d="M44,124 Q30,60 6,8" fill="none" stroke="#8fb4d8" stroke-width="2"/>`;
+    g += `<path d="M150,90 L182,62 Q190,90 178,104 Q190,118 182,146 L150,122 Z" fill="${D}" ${O}/>`;
+    // dorsal fin
+    g += `<path d="M76,58 Q92,30 118,40 Q126,46 124,58 Z" fill="${D}" ${O}/>`;
+    // round body + belly
+    g += `<ellipse cx="96" cy="112" rx="66" ry="58" fill="${B}" ${O}/><path d="M42,128 Q96,180 150,128 Q144,166 96,170 Q48,166 42,128 Z" fill="${K}"/>` ;
+    // glowing mutant spots
+    for (const [x, y, r] of [[60, 80, 4.5], [138, 78, 4], [146, 102, 3], [54, 106, 3]])
+      g += `<circle cx="${x}" cy="${y}" r="${r * 1.9}" fill="${G}" opacity=".35"/><circle cx="${x}" cy="${y}" r="${r}" fill="${G}"/>`;
+    // tiny third eye
+    g += `<ellipse cx="96" cy="64" rx="5.5" ry="6.5" fill="#3a2218"/><circle cx="94.5" cy="62" r="2" fill="#fff"/><path d="M89,57 Q96,53 103,57" fill="none" stroke="${L}" stroke-width="2" stroke-linecap="round"/>`;
+    g += face(96, 86, 1, { nose: false, mouth: false });
+    // wide grinning catfish mouth
+    g += `<path d="M58,112 Q96,124 134,112 Q128,138 96,138 Q64,138 58,112 Z" fill="#6b3a2a" ${O}/>` +
+      `<path d="M74,132 Q96,120 118,132 Q108,138 96,138 Q84,138 74,132 Z" fill="#ff7f9e"/>`;
+    // droopy curly whiskers
+    g += tube("M60,112 C40,112 26,124 24,142 C22,156 34,158 36,148", D, 3.5) +
+      tube("M132,112 C152,112 166,126 166,146 C166,160 154,160 154,150", D, 3.5) +
+      tube("M70,118 C58,128 54,146 60,160 C64,168 72,164 70,158", D, 3) +
+      tube("M122,118 C134,128 138,144 132,158 C128,166 120,162 122,156", D, 3);
+    // hook caught in lip (left), with line
+    g += `<path d="M46,96 L46,118 Q46,126 54,126 Q61,126 61,118" fill="none" stroke="${L}" stroke-width="5" stroke-linecap="round"/><path d="M46,96 L46,118 Q46,126 54,126 Q61,126 61,118" fill="none" stroke="#d6dde6" stroke-width="2.4" stroke-linecap="round"/><circle cx="46" cy="94" r="3" fill="#fff" stroke="${L}" stroke-width="1.5"/>`;
+    // side fin holding a mug of bubbling, glowing green imperial stout + straw
+    g += `<path d="M180,140 Q194,140 194,156 Q194,172 180,172" fill="none" stroke="${L}" stroke-width="7" stroke-linecap="round"/><path d="M180,140 Q194,140 194,156 Q194,172 180,172" fill="none" stroke="#d9f2ff" stroke-width="3" stroke-linecap="round"/>` +
+      `<path d="M128,126 L156,96 L162,100" fill="none" stroke="${L}" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M128,126 L156,96 L162,100" fill="none" stroke="#ff8fb0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>` +
+      `<rect x="146" y="124" width="36" height="56" rx="7" fill="#57d92e" ${O}/><path d="M156,138 L156,170 M168,138 L168,170" stroke="#b6ff7a" stroke-width="3.5" stroke-linecap="round"/>` +
+      `<circle cx="162" cy="152" r="3" fill="#d9ffb0"/><circle cx="159" cy="166" r="2.2" fill="#d9ffb0"/>` +
+      `<path d="M143,128 Q144,114 154,118 Q160,110 168,116 Q178,110 184,122 Q186,128 184,130 Z" fill="#d9ffb0" ${O}/>` +
+      `<circle cx="176" cy="104" r="4" fill="#d9ffb0" ${O} stroke-width="1.8"/><circle cx="184" cy="92" r="2.6" fill="#d9ffb0" ${O} stroke-width="1.5"/>` +
+      `<path d="M150,150 Q138,146 136,158 Q138,170 152,164 Z" fill="${D}" ${O}/>`;
+    // bubbles
+    g += `<circle cx="28" cy="40" r="6" fill="#e3f6ff" opacity=".8" stroke="#6fb4d8" stroke-width="1.5"/>`;
+    return svg("Potomac Gulper", g);
   };
 
   // ── Chessie: friendly sea serpent in a sailor hat, humps in wavy water ──
@@ -137,6 +190,18 @@
       `<ellipse cx="74" cy="152" rx="9" ry="8" fill="${S}" ${O}/>`;
     return svg("Bunnyman", g);
   };
+
+  // Some shapes add a stroke override after the shared outline attrs, which repeats an attribute on one tag.
+  // Browsers keep the FIRST copy (dropping the override) and strict SVG parsers reject it, so keep the LAST copy.
+  const dedupeAttrs = (svg) => svg.replace(/<([a-zA-Z][\w:-]*)((?:\s+[\w:-]+="[^"]*")+)\s*(\/?)>/g, (m, tag, attrs, close) => {
+    const seen = new Map();
+    for (const [, k, v] of attrs.matchAll(/\s+([\w:-]+)="([^"]*)"/g)) { seen.delete(k); seen.set(k, v); }
+    return `<${tag}${[...seen].map(([k, v]) => ` ${k}="${v}"`).join("")}${close ? "/" : ""}>`;
+  });
+  for (const k of ["snallygaster", "chessie", "gulper", "goatman", "bunnyman"]) {
+    const f = C[k];
+    if (typeof f === "function") C[k] = (id) => dedupeAttrs(f(id));
+  }
 
   if (typeof module !== "undefined") module.exports = C;
 })(typeof window !== "undefined" ? window : globalThis);
