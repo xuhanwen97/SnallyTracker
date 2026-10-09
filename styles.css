@@ -114,7 +114,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
 .btn-gold { background: var(--gold); }
 .btn-danger { background: #ffd0c8; color: #6d1810; }
 .btn-big { width: 100%; font-family: var(--f-display); font-size: 22px; font-weight: 700; padding: 16px; min-height: 62px; border-radius: 20px; }
-.btn-mini { font-size: 14px; padding: 6px 12px; min-height: 40px; border-radius: 12px; box-shadow: 0 3px 0 var(--brown); background: var(--card); color: var(--ink); }
+.btn-mini { font-size: 14px; padding: 6px 12px; min-height: 44px; border-radius: 12px; box-shadow: 0 3px 0 var(--brown); background: var(--card); color: var(--ink); }
 .btn-mini.btn-danger { background: #ffd0c8; color: #6d1810; }
 #refreshBtn.spin { animation: pulse 1s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .5; } }
@@ -393,7 +393,7 @@ select.input {
 /* ---------- footer, toast, dialog ---------- */
 .foot { text-align: center; padding: 24px 16px 40px; color: var(--muted); font-size: 14px; font-weight: 700; }
 .foot p { margin: 4px 0; }
-.foot a { display: inline-block; padding: 10px 6px; }
+.foot a { display: inline-block; padding: 12px 8px; min-height: 44px; }
 .toast {
   position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 50; width: min(92vw, 460px);
   transform: translate(-50%, 140%); padding: 14px 18px; border-radius: 18px; text-align: center;
@@ -449,3 +449,5 @@ select.input {
 }
 .combo { scroll-margin-top: 84px; }
 .who-mini span { white-space: nowrap; }
+/* long lists (~1000 pours): skip layout/paint of off-screen rows */
+#allPours .pour, #adminPours .pour { content-visibility: auto; contain-intrinsic-size: auto 64px; }

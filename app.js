@@ -43,15 +43,18 @@
     return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
   }
   function ago(ms) {
+    if (!isFinite(ms)) return "time unknown";
     const s = Math.max(0, Math.round((now() - ms) / 1000));
     if (s < 45) return "just now";
     if (s < 3600) return Math.round(s / 60) + "m ago";
     if (s < 86400) return Math.floor(s / 3600) + "h " + Math.round((s % 3600) / 60) + "m ago";
     return new Date(ms).toLocaleDateString();
   }
-  const clock = (ms) => (isFinite(ms) ? new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "");
+  const CLOCK_FMT = new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" }); // toLocaleTimeString per pour is slow at ~1000 pours
+  const clock = (ms) => (isFinite(ms) ? CLOCK_FMT.format(ms) : "");
   const ratingLabel = (r) => LORE.ratings.find((x) => r >= x.min) || { label: "", emoji: "" };
 
+  const byNewest = (a, b) => (isFinite(b.tms) ? b.tms : -Infinity) - (isFinite(a.tms) ? a.tms : -Infinity) || 0;
   class NetError extends Error {}
 
   // ---------- beers ----------
@@ -205,7 +208,7 @@
   })();
 
   // ---------- state + scoring ----------
-  const S = { drinkers: [], pours: [], loaded: false, lastFetch: 0, lastAttempt: 0, skew: 0, err: null, refreshing: false };
+  const S = { sig: "", gen: 0, drinkers: [], pours: [], loaded: false, lastFetch: 0, lastAttempt: 0, skew: 0, err: null, refreshing: false };
 
   function normPour(p) {
     const abv = p.abv === "" || p.abv == null ? NaN : +p.abv;
@@ -260,7 +263,7 @@
       r.avgAbv = r.oz > 0 ? r.au / r.oz : NaN;
       r.avgRating = r.rN ? r.rSum / r.rN : NaN;
       r.stage = stageFor(r.n);
-      r.all.sort((a, b) => b.tms - a.tms);
+      r.all.sort(byNewest);
     });
     list.sort((a, b) => b.au - a.au || b.n - a.n || a.name.localeCompare(b.name));
     const maxAu = Math.max(0, ...list.map((r) => r.au));
@@ -273,15 +276,25 @@
     if (S.refreshing) return;
     S.refreshing = true; S.lastAttempt = Date.now();
     $("refreshBtn").classList.add("spin");
+    const gen = S.gen;
     try {
       const d = await api("state");
+      // a pour/undo/delete happened while this request was in flight: its answer may be stale,
+      // so drop it (otherwise a just-logged pour vanishes) and refetch on the next tick
+      if (gen !== S.gen) { S.lastAttempt = 0; return; }
       if (!d || !d.ok) throw new Error((d && d.error) || "The server didn't return the leaderboard.");
-      S.drinkers = (d.drinkers || []).map(String).filter(Boolean);
-      S.pours = (d.pours || []).map(normPour);
       const st = Date.parse(d.serverTime);
       S.skew = isFinite(st) ? st - Date.now() : 0;
-      S.lastFetch = Date.now(); S.err = null; S.loaded = true;
-      renderAll();
+      S.lastFetch = Date.now(); S.err = null;
+      // most polls bring nothing new: skip the (big) rerender then
+      const sig = JSON.stringify([d.drinkers, d.pours]);
+      if (!S.loaded || sig !== S.sig) {
+        S.sig = sig;
+        S.drinkers = (d.drinkers || []).map(String).filter(Boolean);
+        S.pours = (d.pours || []).map(normPour);
+        S.loaded = true;
+        renderAll();
+      }
       if (manual) toast("Fresh from the hoard ✨");
     } catch (e) {
       console.warn("refresh failed", e);
@@ -308,7 +321,7 @@
     renderDrinkers();
     renderMySnally();
     renderRecent();
-    renderBoard();
+    if (currentView === "board") renderBoard(); // route() renders it on entering the tab
     if (currentView === "admin") renderAdmin();
     updateForm();
   }
@@ -321,14 +334,15 @@
     const sel = $("drinkerSel");
     const names = [...S.drinkers].sort((a, b) => a.localeCompare(b));
     if (me && S.loaded && !names.includes(me)) { me = ""; LS.del("snally-drinker"); }
-    sel.innerHTML = `<option value="">${names.length ? "Choose your name…" : "No drinkers yet"}</option>` +
+    const html = `<option value="">${names.length ? "Choose your name…" : "No drinkers yet"}</option>` +
       names.map((n) => `<option${n === me ? " selected" : ""}>${esc(n)}</option>`).join("");
+    if (html !== lastDrinkerHtml) { sel.innerHTML = html; lastDrinkerHtml = html; }
     const chosen = !!me && !pickingDrinker;
     $("whoPick").hidden = chosen;
     $("whoChosen").hidden = !chosen;
     $("whoName").textContent = me;
   }
-  let pickingDrinker = false;
+  let pickingDrinker = false, lastDrinkerHtml = "";
 
   function renderMySnally() {
     const box = $("mySnally");
@@ -358,7 +372,7 @@
       : del ? `<button type="button" class="btn btn-mini btn-danger" data-del="${esc(p.id)}">Delete</button>` : "";
     return `<li class="pour">
       <div class="pour-main"><div class="pour-name">${who ? `<span class="pour-who">${esc(p.drinker)}</span> · ` : ""}<b>${esc(p.beer)}</b>${p.brewery ? ` <span class="muted">· ${esc(p.brewery)}</span>` : ""}</div>
-      <div class="pour-meta">${tent} <span>${math}</span>${isFinite(p.rating) ? ` <span class="pour-star">${trim0(p.rating, 1)}★</span>` : ""} <span class="muted" title="${esc(new Date(p.tms).toLocaleString())}">${clock(p.tms)} · ${ago(p.tms)}</span></div></div>
+      <div class="pour-meta">${tent} <span>${math}</span>${isFinite(p.rating) ? ` <span class="pour-star">${trim0(p.rating, 1)}★</span>` : ""} <span class="muted"${isFinite(p.tms) ? ` title="${esc(new Date(p.tms).toLocaleString())}"` : ""}>${isFinite(p.tms) ? clock(p.tms) + " · " : ""}${ago(p.tms)}</span></div></div>
       ${btn}</li>`;
   }
   const tentChip = (t) => `<span class="chip chip-tent">${esc((LORE.tents[t] || {}).emoji || "⛺")} ${esc(t)}</span>`;
@@ -375,7 +389,7 @@
       <div class="res-sub"><span class="res-brew">${esc(b.brewery)}</span>${b.tent ? tentChip(b.tent) : ""}</div>
       ${b.style ? `<div class="res-style">${esc(b.style)}</div>` : ""}</li>`);
     rows.push(`<li role="option" id="opt-c" class="res res-custom" data-i="custom" aria-selected="false">+ Add a custom drink: <b>“${esc(q.trim())}”</b></li>`);
-    listEl.innerHTML = (F.results.length ? "" : `<li class="res-none" role="presentation">No festival beer matches “${esc(q.trim())}”.</li>`) + rows.join("");
+    listEl.innerHTML = (F.results.length ? "" : `<li class="res-none" role="presentation">${BEERS.length ? `No festival beer matches “${esc(q.trim())}”.` : "The festival beer list didn't load (try reloading the page). You can add it as a custom drink:"}</li>`) + rows.join("");
     listEl.hidden = false;
     input.setAttribute("aria-expanded", "true");
   }
@@ -469,6 +483,8 @@
     F.clientId = null;
     renderDrinkers(); renderMySnally(); renderRecent(); updateForm();
   });
+  // "(change)" then re-picking the same name fires no change event: go back on blur
+  $("drinkerSel").addEventListener("blur", () => { if (pickingDrinker && me && $("drinkerSel").value === me) { pickingDrinker = false; renderDrinkers(); } });
   $("whoChange").addEventListener("click", () => { pickingDrinker = true; renderDrinkers(); $("drinkerSel").focus(); });
 
   // sizes + glasses
@@ -578,6 +594,7 @@
     }
     const pour = normPour(d.pour || { ...payload, id: "local-" + payload.clientId, t: new Date(now()).toISOString(), custom: !payload.beerId });
     if (!S.pours.some((p) => p.id === pour.id)) S.pours.push(pour);
+    S.gen++; S.sig = "";
     // reset beer + rating, keep drinker + size
     F.beer = null; F.custom = false; F.clientId = null; F.showErrors = false;
     input.value = ""; $("rating").value = 3; syncRating();
@@ -601,7 +618,7 @@
     try {
       const d = await api("deletePour", { id: p.id, drinker: me });
       if (!d.ok) throw new Error(d.error || "Couldn't undo.");
-      S.pours = S.pours.filter((x) => x.id !== p.id);
+      S.pours = S.pours.filter((x) => x.id !== p.id); S.gen++; S.sig = "";
       renderAll(); toast("Pour undone. The coins slink back. ↩");
     } catch (err) { b.disabled = false; toast(err.message, true); }
   });
@@ -717,10 +734,12 @@
     $("topRated").innerHTML = rated.length ? rated.map((b) => sightRow(b, `<b>${b.avg.toFixed(2)}★</b> · ${plural(b.rN, "rating")}`)).join("") : `<li class="empty">No beer has 3 ratings yet.</li>`;
 
     // all pours
-    const all = [...S.pours].sort((a, b) => b.tms - a.tms);
+    const all = [...S.pours].sort(byNewest);
     $("allCount").textContent = `(${all.length})`;
+    if (!$("allPoursBox").open) { $("allPours").innerHTML = ""; return; } // filled when opened (can be ~1000 rows)
     $("allPours").innerHTML = all.length ? all.map((p) => pourItem(p, { who: true })).join("") : `<li class="empty">No pours yet.</li>`;
   }
+  $("allPoursBox").addEventListener("toggle", () => { if ($("allPoursBox").open) renderBoard(); });
   const expanded = new Set();
   function detailHtml(r) {
     const extra = r.all.length - r.n;
@@ -750,7 +769,7 @@
     $("adminPanel").hidden = !pin;
     if (!pin) return;
     $("drinkerNames").textContent = S.drinkers.join(", ") || "none yet";
-    const all = [...S.pours].sort((a, b) => b.tms - a.tms);
+    const all = [...S.pours].sort(byNewest);
     $("adminCount").textContent = `(${all.length})`;
     $("adminPours").innerHTML = all.length ? all.map((p) => pourItem(p, { del: true, who: true })).join("") : `<li class="empty">No pours.</li>`;
   }
@@ -788,7 +807,7 @@
     try {
       const d = await api("deletePour", { id: p.id, pin });
       if (!d.ok) throw new Error(d.error || "Couldn't delete.");
-      S.pours = S.pours.filter((x) => x.id !== p.id);
+      S.pours = S.pours.filter((x) => x.id !== p.id); S.gen++; S.sig = "";
       renderAll(); toast("Pour deleted.");
     } catch (ex) { b.disabled = false; toast(ex.message, true); }
   });
